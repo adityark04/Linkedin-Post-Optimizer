@@ -32,13 +32,15 @@ export const cosineSimilarity = (vecA: number[], vecB: number[]): number => {
  * @param library - The collection of style library items to search through.
  * @param lambda - A parameter to balance relevance (1.0) and diversity (0.0). Defaults to 0.7.
  * @param fetchN - The number of items to retrieve. Defaults to 3.
+ * @param diversityPower - An exponent to control the diversity penalty. >1 penalizes similarity more heavily. Defaults to 1.0.
  * @returns An array of the selected style library items.
  */
 export const maximalMarginalRelevanceSearch = (
   queryEmbedding: number[],
   library: StyleLibraryItem[],
   lambda: number = 0.7,
-  fetchN: number = 3
+  fetchN: number = 3,
+  diversityPower: number = 1.0
 ): StyleLibraryItem[] => {
   if (library.length === 0 || fetchN === 0) {
     return [];
@@ -84,8 +86,8 @@ export const maximalMarginalRelevanceSearch = (
         ...selectedEmbeddings.map(selectedEmb => cosineSimilarity(candidate.embedding, selectedEmb))
       );
 
-      // Calculate the MMR score
-      const mmrScore = lambda * relevance - (1 - lambda) * maxSimilarityToSelected;
+      // Calculate the MMR score, applying the diversityPower to the penalty term
+      const mmrScore = lambda * relevance - (1 - lambda) * Math.pow(maxSimilarityToSelected, diversityPower);
 
       if (mmrScore > bestMmrScore) {
         bestMmrScore = mmrScore;

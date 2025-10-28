@@ -1,5 +1,4 @@
 
-
 import React, { useState, useCallback } from 'react';
 import { PostGenerationParams, PostGoal, PostTone, StyleLibraryItem } from '../types';
 import { GOALS, TONES } from '../constants';
@@ -25,6 +24,7 @@ const PostGenerator: React.FC = () => {
   const [details, setDetails] = useState('');
   const [isSuggestingHashtags, setIsSuggestingHashtags] = useState(false);
   const [generatedPosts, setGeneratedPosts] = useState<string[]>([]);
+  const [diversity, setDiversity] = useState(1.5); // State for MMR diversity control
   
   const [styleLibrary, setStyleLibrary] = useLocalStorage<StyleLibraryItem[]>('styleLibrary', []);
 
@@ -64,8 +64,8 @@ const PostGenerator: React.FC = () => {
         const query = `Goal: ${goal}, Details: ${details}`;
         const queryEmbedding = await geminiService.embedText(query);
         
-        // Use Maximal Marginal Relevance (MMR) search to get relevant but diverse examples
-        const selectedPosts = maximalMarginalRelevanceSearch(queryEmbedding, styleLibrary, 0.7, 3);
+        // Use Maximal Marginal Relevance (MMR) search with diversity control
+        const selectedPosts = maximalMarginalRelevanceSearch(queryEmbedding, styleLibrary, 0.7, 3, diversity);
         relevantPosts = selectedPosts.map(item => item.text);
       }
       
@@ -79,7 +79,7 @@ const PostGenerator: React.FC = () => {
     } finally {
       setIsProcessing(false);
     }
-  }, [goal, tone, details, styleLibrary, isGenFormValid]);
+  }, [goal, tone, details, styleLibrary, isGenFormValid, diversity]);
   
   const handleTabChange = (tab: 'generate' | 'revise') => {
     setActiveTab(tab);
@@ -157,6 +157,41 @@ const PostGenerator: React.FC = () => {
       <div className="mb-6">
         <RealtimeAnalysis text={details} />
       </div>
+
+      {styleLibrary.length > 1 && (
+        <div className="mb-6 animate-fade-in">
+          <label htmlFor="diversity" className="flex items-center text-sm font-medium text-slate-700 mb-2">
+            Style Variety
+            <span 
+              className="ml-2 text-xs text-slate-500 border border-slate-300 rounded-full h-4 w-4 flex items-center justify-center cursor-help"
+              title="Controls how stylistically different the examples from your library will be. Higher values force more variety."
+            >
+              ?
+            </span>
+          </label>
+          <div className="relative pt-4">
+            <input
+              type="range"
+              id="diversity"
+              name="diversity"
+              min="0.5"
+              max="3.0"
+              step="0.1"
+              value={diversity}
+              onChange={(e) => setDiversity(parseFloat(e.target.value))}
+              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+            />
+            <div className="flex justify-between text-xs text-slate-500 mt-1 px-1">
+              <span>Focused</span>
+              <span>Balanced</span>
+              <span>Diverse</span>
+            </div>
+            <span className="absolute -top-2 text-xs font-bold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full" style={{ left: `calc(${((diversity - 0.5) / 2.5) * 100}% - 16px)` }}>
+              {diversity.toFixed(1)}
+            </span>
+          </div>
+        </div>
+      )}
 
       <div className="my-6">
         <StyleLibraryManager

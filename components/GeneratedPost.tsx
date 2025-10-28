@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { GeneratedPostData } from '../types';
 import { CopyIcon } from './icons/CopyIcon';
@@ -27,7 +26,7 @@ const GeneratedPost: React.FC<GeneratedPostProps> = ({ post }) => {
   }, [isCopied]);
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/70 overflow-hidden transition-shadow hover:shadow-xl">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/70 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className="p-5 bg-slate-50/80 border-b border-slate-200/70 flex justify-between items-center">
         <h3 className="text-lg font-semibold text-slate-800">{post.title}</h3>
         <button

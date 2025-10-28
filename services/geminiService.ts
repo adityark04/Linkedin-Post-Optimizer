@@ -5,12 +5,12 @@ class GeminiService {
   private ai: GoogleGenAI;
 
   constructor() {
+    // FIX: Per coding guidelines, API key must be read from process.env.API_KEY, not import.meta.env.
     if (!process.env.API_KEY) {
-      // As per guidelines, API_KEY is expected to be in the environment.
       // This check is for robustness during development.
-      throw new Error("API_KEY environment variable not set");
+      throw new Error("API_KEY environment variable not set.");
     }
-    // FIX: Initialize GoogleGenAI with named apiKey parameter as per guidelines
+    // FIX: Initialize GoogleGenAI with the API key from process.env.API_KEY as per guidelines.
     this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
 

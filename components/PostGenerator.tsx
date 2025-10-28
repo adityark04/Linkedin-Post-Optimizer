@@ -250,8 +250,9 @@ const PostGenerator: React.FC = () => {
               </div>
             </div>
         </div>
-        {/* FIX: Removed modelService prop from PostAnalyzer */}
-        {activeTab === 'generate' ? renderGeneratorForm() : <PostAnalyzer />}
+        <div key={activeTab} className="animate-fade-in">
+            {activeTab === 'generate' ? renderGeneratorForm() : <PostAnalyzer />}
+        </div>
       </div>
 
       {error && (
@@ -267,7 +268,7 @@ const PostGenerator: React.FC = () => {
       )}
 
       {generatedPosts.length > 0 && !isProcessing && activeTab === 'generate' && (
-        <div className="mt-10">
+        <div className="mt-10 animate-fade-in-slow">
           <h2 className="text-2xl font-bold text-center mb-6 text-slate-800">Your AI-Generated Posts</h2>
           <div className="space-y-6">
             {generatedPosts.map((post, index) => (

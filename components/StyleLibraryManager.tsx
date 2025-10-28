@@ -57,7 +57,7 @@ const StyleLibraryManager: React.FC<StyleLibraryManagerProps> = ({ library, onAd
         </svg>
       </button>
 
-      {isOpen && (
+      <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
         <div className="p-4 border-t border-slate-200">
           <div className="mb-4">
             <label htmlFor="newPost" className="block text-sm font-medium text-slate-700 mb-2">
@@ -102,7 +102,7 @@ const StyleLibraryManager: React.FC<StyleLibraryManagerProps> = ({ library, onAd
             </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

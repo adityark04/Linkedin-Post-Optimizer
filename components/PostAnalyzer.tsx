@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { RevisedPostData } from '../types';
 import geminiService from '../services/geminiService';
@@ -146,7 +145,7 @@ const PostAnalyzer: React.FC<PostAnalyzerProps> = () => {
         )}
         
         {revisedPostData && !isLoading && (
-            <div className="mt-8 pt-8 border-t border-slate-200">
+            <div className="mt-8 pt-8 border-t border-slate-200 animate-fade-in-slow">
                  <h2 className="text-2xl font-bold text-center mb-6 text-slate-800">AI Revision & Analysis</h2>
                  <div className="bg-slate-50 rounded-xl p-6 border border-slate-200 flex flex-col items-center mb-8">
                      <p className="font-semibold text-slate-700 mb-3 text-lg">Gemini Engagement Score</p>

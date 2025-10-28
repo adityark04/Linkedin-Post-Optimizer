@@ -1,2 +1,6 @@
 google-generativeai
 python-dotenv
+tensorflow
+pandas
+scikit-learn
+numpy

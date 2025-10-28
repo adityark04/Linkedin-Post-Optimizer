@@ -1,4 +1,3 @@
-
 export type PostGoal = 'Share Achievement' | 'Share Article' | 'Ask Question' | 'Promote Event' | 'Job Search Update';
 
 export type PostTone = 'Professional' | 'Inspirational' | 'Casual' | 'Technical' | 'Humorous';
@@ -32,5 +31,7 @@ export type EngagementLevel = 'Low' | 'Medium' | 'High';
 export interface EngagementPrediction {
   level: EngagementLevel;
   confidence: number;
+  // FIX: Add missing 'strengths' property to align with what engagementPredictorService provides.
+  strengths: string[];
   justification: string[];
 }

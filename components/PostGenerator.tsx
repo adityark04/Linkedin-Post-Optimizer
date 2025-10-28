@@ -1,3 +1,5 @@
+
+
 import React, { useState, useCallback } from 'react';
 import { PostGenerationParams, PostGoal, PostTone, StyleLibraryItem } from '../types';
 import { GOALS, TONES } from '../constants';
@@ -10,33 +12,12 @@ import StyleLibraryManager from './StyleLibraryManager';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { SparklesIcon } from './icons/SparklesIcon';
 import RealtimeAnalysis from './RealtimeAnalysis';
-
-const cosineSimilarity = (vecA: number[], vecB: number[]): number => {
-  if (!vecA || !vecB || vecA.length !== vecB.length) {
-    return 0;
-  }
-  let dotProduct = 0.0;
-  let normA = 0.0;
-  let normB = 0.0;
-  for (let i = 0; i < vecA.length; i++) {
-    dotProduct += vecA[i] * vecB[i];
-    normB += vecB[i] * vecB[i];
-    normA += vecA[i] * vecA[i];
-  }
-  const denominator = Math.sqrt(normA) * Math.sqrt(normB);
-  if (denominator === 0) {
-    return 0;
-  }
-  return dotProduct / denominator;
-};
+import ResourceSuggester from './ResourceSuggester';
+import { maximalMarginalRelevanceSearch } from '../utils/vectorSearch';
 
 
 const PostGenerator: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'generate' | 'revise'>('generate');
-
-  // FIX: Removed state related to local model loading, as it's no longer needed with Gemini API
-  // const [modelStatus, setModelStatus] = useState({ loaded: false, progress: 0, file: '' });
-  // const modelService = useRef<LocalModelService | null>(null);
 
   // Generator State
   const [goal, setGoal] = useState<PostGoal>(GOALS[0]);
@@ -51,12 +32,9 @@ const PostGenerator: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // FIX: Removed useEffect for loading local models. The Gemini service is ready on import.
-
   const isGenFormValid = details.trim().length > 10;
 
   const handleSuggestHashtags = async () => {
-      // FIX: Simplified check and call to new geminiService
       if (details.trim().length < 10) {
           setError("Please provide more details before suggesting hashtags.");
           return;
@@ -75,7 +53,6 @@ const PostGenerator: React.FC = () => {
 
   const handleGenerateSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    // FIX: Simplified check
     if (!isGenFormValid) return;
 
     setIsProcessing(true);
@@ -85,19 +62,14 @@ const PostGenerator: React.FC = () => {
       let relevantPosts: string[] = [];
       if (styleLibrary.length > 0) {
         const query = `Goal: ${goal}, Details: ${details}`;
-        // FIX: Use geminiService for embeddings
         const queryEmbedding = await geminiService.embedText(query);
-        const rankedPosts = styleLibrary
-          .map(item => ({
-            ...item,
-            similarity: cosineSimilarity(queryEmbedding, item.embedding),
-          }))
-          .sort((a, b) => b.similarity - a.similarity);
-        relevantPosts = rankedPosts.slice(0, 3).map(item => item.text);
+        
+        // Use Maximal Marginal Relevance (MMR) search to get relevant but diverse examples
+        const selectedPosts = maximalMarginalRelevanceSearch(queryEmbedding, styleLibrary, 0.7, 3);
+        relevantPosts = selectedPosts.map(item => item.text);
       }
       
       const params: PostGenerationParams = { goal, tone, details, relevantPosts };
-      // FIX: Use geminiService for post generation
       const post = await geminiService.generateLinkedInPost(params);
       setGeneratedPosts(prev => [post, ...prev]);
 
@@ -115,7 +87,6 @@ const PostGenerator: React.FC = () => {
   }
 
   const addPostToLibrary = useCallback(async (post: string) => {
-    // FIX: Simplified logic to use geminiService for embeddings
     setError(null);
     try {
       const newEmbedding = await geminiService.embedText(post);
@@ -132,8 +103,11 @@ const PostGenerator: React.FC = () => {
     setStyleLibrary(prevLibrary => prevLibrary.filter((_, index) => index !== indexToRemove));
   };
   
-  // FIX: Removed the loading UI for local models.
-  
+  const handleSuggestionClick = (suggestion: string) => {
+    // Append the suggestion to the details text area, ensuring there's a space
+    setDetails(prev => `${prev} ${suggestion}`.trim() + ' ');
+  };
+
   const renderGeneratorForm = () => (
     <form onSubmit={handleGenerateSubmit}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -154,7 +128,7 @@ const PostGenerator: React.FC = () => {
           </select>
         </div>
       </div>
-      <div className="mb-4">
+      <div className="mb-6">
         <div className="flex justify-between items-center mb-2">
             <label htmlFor="details" className="block text-sm font-medium text-slate-700">
               Provide key details or a rough draft
@@ -176,7 +150,13 @@ const PostGenerator: React.FC = () => {
         </div>
       </div>
       
-      <RealtimeAnalysis text={details} />
+      <div className="mb-6">
+        <ResourceSuggester onSuggestionClick={handleSuggestionClick} />
+      </div>
+
+      <div className="mb-6">
+        <RealtimeAnalysis text={details} />
+      </div>
 
       <div className="my-6">
         <StyleLibraryManager

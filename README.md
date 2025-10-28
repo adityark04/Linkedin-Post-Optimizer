@@ -18,11 +18,12 @@ An AI-powered tool to help users generate and revise engaging, effective LinkedI
     *   **Google Gemini API (`gemini-2.5-flash`)**: For post generation, revision, and RAG.
     *   **Google Embedding Models (`text-embedding-004`)**: For creating vector representations of text for RAG.
     *   **TensorFlow.js & Toxicity Model**: For client-side content safety analysis.
+    *   **TensorFlow & Keras (Python)**: For training the custom engagement prediction model.
 *   **Build Tool**: Vite
 
-## 🚀 Getting Started
+## 🚀 Getting Started: Frontend Application
 
-Follow these instructions to set up and run the project on your local machine.
+Follow these instructions to set up and run the React application on your local machine.
 
 ### Prerequisites
 
@@ -64,6 +65,68 @@ VITE_API_KEY=YOUR_GEMINI_API_KEY_HERE
 2.  Open your web browser and navigate to the local URL provided in the terminal (usually `http://localhost:5173`).
 
 You should now see the application running!
+
+---
+
+## 🧠 Training Your Own Deep Learning Model
+
+This project includes a complete Python script and Jupyter Notebook to train your own engagement prediction model. This allows you to experiment with deep learning concepts and potentially replace the simulated model in the frontend with a real one.
+
+### Prerequisites
+
+*   **Python**: Ensure you have Python 3.8+ installed.
+*   **Pip**: Python's package installer.
+
+### Setup & Training
+
+**1. Create a Virtual Environment (Recommended)**
+
+It's best practice to create a virtual environment to manage the project's Python dependencies.
+
+```bash
+# Create the environment
+python -m venv venv
+
+# Activate it
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+```
+
+**2. Install Python Dependencies**
+
+Install all the required libraries using the `requirements.txt` file.
+
+```bash
+pip install -r requirements.txt
+```
+
+**3. Run the Training Script**
+
+Execute the `train_model.py` script to start the training process.
+
+```bash
+python train_model.py
+```
+
+The script will:
+1.  Load the dataset from `data/linkedin_posts_dataset.csv`.
+2.  Preprocess the text data.
+3.  Build a neural network with Embedding and LSTM layers.
+4.  Train the model.
+5.  Evaluate its performance and save the trained model to a file (`engagement_model.h5`).
+
+**4. Explore with Jupyter Notebook**
+
+For a more interactive, step-by-step guide through the training process, you can use the `model_training.ipynb` notebook. Make sure you have Jupyter installed (`pip install notebook`) and run:
+
+```bash
+jupyter notebook
+```
+
+Then, open the `model_training.ipynb` file in the Jupyter interface.
+
 
 ## 🏛️ Architecture
 

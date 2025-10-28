@@ -61,7 +61,7 @@ const PostGenerator: React.FC = () => {
     try {
       let relevantPosts: string[] = [];
       if (styleLibrary.length > 0) {
-        const query = `Goal: ${goal}, Details: ${details}`;
+        const query = `Goal: ${goal}, Tone: ${tone}, Details: ${details}`;
         const queryEmbedding = await geminiService.embedText(query);
         
         // Use Maximal Marginal Relevance (MMR) search with diversity control

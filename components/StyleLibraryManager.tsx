@@ -29,21 +29,21 @@ const StyleLibraryManager: React.FC<StyleLibraryManagerProps> = ({ library, onAd
   };
 
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg">
+    <div className="bg-slate-50 border border-slate-200 rounded-lg">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full p-4 flex justify-between items-center text-left"
+        className="w-full p-4 flex justify-between items-center text-left hover:bg-slate-100 rounded-lg transition-colors"
         aria-expanded={isOpen}
       >
         <div className="flex items-center">
-          <DatabaseIcon className="h-6 w-6 text-blue-600 mr-3" />
+          <DatabaseIcon className="h-6 w-6 text-indigo-600 mr-3" />
           <div>
-            <h4 className="font-semibold text-gray-800">Your Style Library (RAG)</h4>
-            <p className="text-sm text-gray-500">Add successful posts to create a knowledge base for the AI.</p>
+            <h4 className="font-semibold text-slate-800">Your Style Library (RAG)</h4>
+            <p className="text-sm text-slate-500">Add successful posts to create a knowledge base for the AI.</p>
           </div>
         </div>
         <svg
-          className={`h-5 w-5 text-gray-500 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`h-5 w-5 text-slate-500 transform transition-transform ${isOpen ? 'rotate-180' : ''}`}
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 20 20"
           fill="currentColor"
@@ -58,9 +58,9 @@ const StyleLibraryManager: React.FC<StyleLibraryManagerProps> = ({ library, onAd
       </button>
 
       {isOpen && (
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-slate-200">
           <div className="mb-4">
-            <label htmlFor="newPost" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="newPost" className="block text-sm font-medium text-slate-700 mb-2">
               Add a new post to your library:
             </label>
             <textarea
@@ -68,14 +68,14 @@ const StyleLibraryManager: React.FC<StyleLibraryManagerProps> = ({ library, onAd
               rows={4}
               value={newPost}
               onChange={(e) => setNewPost(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+              className="w-full p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
               placeholder="Paste one of your successful posts here..."
             />
             <div className="flex justify-end mt-2">
               <button
                 onClick={handleAdd}
                 disabled={!newPost.trim() || isAdding}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-blue-700 disabled:bg-gray-400 flex items-center justify-center min-w-[120px]"
+                className="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-indigo-700 disabled:bg-slate-400 flex items-center justify-center min-w-[120px]"
               >
                 {isAdding ? (
                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -88,12 +88,12 @@ const StyleLibraryManager: React.FC<StyleLibraryManagerProps> = ({ library, onAd
           </div>
           {library.length > 0 && (
             <div>
-              <h5 className="text-sm font-semibold text-gray-700 mb-2">Library Posts:</h5>
+              <h5 className="text-sm font-semibold text-slate-700 mb-2">Library Posts:</h5>
               <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
                 {library.map((item, index) => (
-                  <div key={index} className="bg-white p-3 rounded-md border border-gray-200 flex justify-between items-start">
-                    <p className="text-sm text-gray-600 break-words w-full mr-2">&ldquo;{item.text.substring(0, 100)}{item.text.length > 100 ? '...' : ''}&rdquo;</p>
-                    <button onClick={() => onRemovePost(index)} aria-label="Remove post" className="text-gray-400 hover:text-red-500 flex-shrink-0 p-1">
+                  <div key={index} className="bg-white p-3 rounded-md border border-slate-200 flex justify-between items-start">
+                    <p className="text-sm text-slate-600 break-words w-full mr-2">&ldquo;{item.text.substring(0, 100)}{item.text.length > 100 ? '...' : ''}&rdquo;</p>
+                    <button onClick={() => onRemovePost(index)} aria-label="Remove post" className="text-slate-400 hover:text-red-500 flex-shrink-0 p-1">
                       <TrashIcon className="h-4 w-4" />
                     </button>
                   </div>

@@ -25,3 +25,12 @@ export interface RevisedPostData {
   content: string;
   score: number;
 }
+
+// Types for the custom engagement prediction model
+export type EngagementLevel = 'Low' | 'Medium' | 'High';
+
+export interface EngagementPrediction {
+  level: EngagementLevel;
+  confidence: number;
+  justification: string[];
+}

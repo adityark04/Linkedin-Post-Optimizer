@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ShieldCheckIcon } from './icons/ShieldCheckIcon';
-
-// Declare toxicity outside the component to use the global object loaded by the script tag
-declare const toxicity: any;
+import * as toxicity from '@tensorflow-models/toxicity';
+import '@tensorflow/tfjs'; // Required for side-effects: backend registration
 
 interface RealtimeAnalysisProps {
   text: string;
@@ -35,13 +34,7 @@ const RealtimeAnalysis: React.FC<RealtimeAnalysisProps> = ({ text }) => {
         setStatus('error');
       }
     };
-    if (typeof toxicity !== 'undefined') {
-        loadModel();
-    } else {
-        // Handle case where script might not have loaded yet
-        console.error("Toxicity.js script not loaded.");
-        setStatus('error');
-    }
+    loadModel();
   }, []);
 
   const analyzeText = useCallback(async (textToAnalyze: string) => {

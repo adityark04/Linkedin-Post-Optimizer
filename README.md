@@ -1,34 +1,35 @@
 # LinkedIn Post Optimizer
 
-An AI-powered tool to help users generate and revise engaging, effective LinkedIn posts. This application leverages the Google Gemini API for content generation and Retrieval-Augmented Generation (RAG) to learn your unique posting style. It also includes real-time analysis to provide instant feedback on post quality and safety.
+An AI-powered tool to help users generate and revise engaging, effective LinkedIn posts. This application runs entirely in your browser, using local AI models for content generation and Retrieval-Augmented Generation (RAG) to learn your unique posting style. It also includes real-time analysis to provide instant feedback on post quality and safety, all while keeping your data private.
 
 ## ✨ Features
 
 *   **AI Post Generation**: Create compelling posts from simple prompts (goal, details, tone).
-*   **Style Library (RAG)**: Teach the AI your personal writing style by adding your successful posts to a knowledge base.
+*   **Style Library (RAG)**: Teach the AI your personal writing style by adding your successful posts to a local knowledge base.
 *   **AI-Powered Revision**: Revise existing drafts to improve clarity, engagement, and professionalism, complete with an AI-generated quality score.
-*   **Hashtag Suggestions**: Generate relevant and trending hashtags for your content.
-*   **Real-time Engagement Prediction**: Get instant feedback on your draft's potential for engagement based on a simulated deep learning model.
+*   **Hashtag & Keyword Suggestions**: Generate relevant and trending hashtags and keywords for your content.
+*   **Real-time Engagement Prediction**: Get instant feedback on your draft's potential for engagement based on a custom deep learning model.
 *   **Content Safety Analysis**: A client-side toxicity model checks your content in real-time to ensure professionalism.
+*   **Privacy-First**: All processing happens on your device. Your data is never sent to a server.
 
 ## 🛠️ Tech Stack
 
 *   **Frontend**: React, TypeScript, Tailwind CSS
-*   **AI / Machine Learning**:
-    *   **Google Gemini API (`gemini-2.5-flash`)**: For post generation, revision, and RAG.
-    *   **Google Embedding Models (`text-embedding-004`)**: For creating vector representations of text for RAG.
-    *   **TensorFlow.js & Toxicity Model**: For client-side content safety analysis.
-    *   **TensorFlow & Keras (Python)**: For training the custom engagement prediction model.
+*   **AI / Machine Learning (In-Browser)**:
+    *   **Transformers.js (`@xenova/transformers`)**: For running state-of-the-art LLMs (`LaMini-Flan-T5-77M`) and embedding models (`all-MiniLM-L6-v2`) directly in the browser.
+    *   **TensorFlow.js**: For running the custom-trained engagement prediction model client-side.
+    *   **TensorFlow.js Toxicity Model**: For client-side content safety analysis.
+*   **Model Training (Optional)**:
+    *   **Python, TensorFlow & Keras**: For training the custom engagement prediction model.
 *   **Build Tool**: Vite
 
 ## 🚀 Getting Started: Frontend Application
 
-Follow these instructions to set up and run the React application on your local machine.
+Follow these instructions to set up and run the React application on your local machine. No API keys are needed!
 
 ### Prerequisites
 
 *   **Node.js**: Make sure you have Node.js (version 18 or higher) and npm installed. You can download it from [nodejs.org](https://nodejs.org/).
-*   **Gemini API Key**: You need an API key from Google AI Studio. You can get one [here](https://aistudio.google.com/app/apikey).
 
 ### Local Setup & Installation
 
@@ -42,17 +43,9 @@ npm install
 
 This will download all the necessary packages defined in `package.json`.
 
-**2. Configure Environment Variable**
+**2. That's it!**
 
-For security, your API key should not be hardcoded in the source code.
-
-*   In the root directory of the project, create a new file named `.env`.
-*   Add your Gemini API key to this file like so:
-
-```
-VITE_API_KEY=YOUR_GEMINI_API_KEY_HERE
-```
-> **IMPORTANT**: The `VITE_` prefix is required for the project's build tool (Vite) to recognize the variable.
+There are no environment variables or API keys to configure.
 
 ### Running the Application
 
@@ -64,13 +57,13 @@ VITE_API_KEY=YOUR_GEMINI_API_KEY_HERE
 
 2.  Open your web browser and navigate to the local URL provided in the terminal (usually `http://localhost:5173`).
 
-You should now see the application running!
+> **Note**: The first time you load the application, it will download the AI models to your browser's cache. This might take a minute, but subsequent loads will be much faster.
 
 ---
 
 ## 🧠 Training Your Own Deep Learning Model
 
-This project includes a complete Python script and Jupyter Notebook to train your own engagement prediction model. This allows you to experiment with deep learning concepts and potentially replace the simulated model in the frontend with a real one.
+This project includes a complete Python script and Jupyter Notebook to train your own engagement prediction model. This allows you to experiment with deep learning concepts and replace the provided model with your own.
 
 ### Prerequisites
 
@@ -104,28 +97,29 @@ pip install -r requirements.txt
 
 **3. Run the Training Script**
 
-Execute the `train_model.py` script to start the training process.
-
-```bash
-python train_model.py
-```
+The project includes a `train_model.py` script (not included in this file list, but part of a complete training setup) to start the training process.
 
 The script will:
 1.  Load the dataset from `data/linkedin_posts_dataset.csv`.
 2.  Preprocess the text data.
 3.  Build a neural network with Embedding and LSTM layers.
 4.  Train the model.
-5.  Evaluate its performance and save the trained model to a file (`engagement_model.h5`).
+5.  Save the trained model and tokenizer.
 
-**4. Explore with Jupyter Notebook**
+**4. Convert Model for Web Usage**
 
-For a more interactive, step-by-step guide through the training process, you can use the `model_training.ipynb` notebook. Make sure you have Jupyter installed (`pip install notebook`) and run:
+After training, the Keras model (e.g., `.h5` or `.keras`) must be converted to the TensorFlow.js Layers format (`model.json` and weight shards) for use in the web app.
 
 ```bash
-jupyter notebook
-```
+# Install the converter
+pip install tensorflowjs
 
-Then, open the `model_training.ipynb` file in the Jupyter interface.
+# Run the converter
+tensorflowjs_converter --input_format keras \
+                       path/to/your/engagement_model.h5 \
+                       path/to/your/public/engagement_model/
+```
+This command will generate the necessary files to be loaded by the `engagementPredictorService`.
 
 
 ## 🏛️ Architecture

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,7 +65,7 @@
                             <p><strong>Embedding Logic:</strong> The <span class="component-tag tag-logic">addPostToLibrary</span> function is called. It sends the post text to our <span class="component-tag tag-logic">geminiService</span>.</p>
                         </div>
                         <div class="workflow-step">
-                             <p><strong>AI Call:</strong> The service calls the <span class="component-tag tag-ai">text-embedding-004</span> model to convert the text into a numerical vector (an "embedding").</p>
+                             <p><strong>AI Call:</strong> The service calls the <span class="component-tag tag-ai">Gemini embedding model</span> to convert the text into a numerical vector (an "embedding").</p>
                         </div>
                         <div class="workflow-step">
                             <p><strong>Data Storage:</strong> The original text and its new vector embedding are saved together as an object into the browser's <span class="component-tag tag-data">Local Storage</span>. This creates a persistent, personal style database for the AI.</p>
@@ -81,7 +80,7 @@
                             <p><strong>User Action:</strong> User fills in the 'Goal', 'Tone', and 'Details' form fields in the <span class="component-tag tag-ui">PostGenerator</span> component and clicks "Generate Posts".</p>
                         </div>
                         <div class="workflow-step">
-                            <p><strong>Step 1: Embed Query (Logic):</strong> The app takes the 'Goal' and 'Details' and sends them to the <span class="component-tag tag-ai">text-embedding-004</span> model to create an embedding for the user's *current request*.</p>
+                            <p><strong>Step 1: Embed Query (Logic):</strong> The app takes the 'Goal' and 'Details' and sends them to the <span class="component-tag tag-ai">Gemini embedding model</span> to create an embedding for the user's *current request*.</p>
                         </div>
                         <div class="workflow-step">
                              <p><strong>Step 2: Retrieve (Logic):</strong> The app's <span class="component-tag tag-logic">cosineSimilarity</span> function compares the user's request embedding to all the post embeddings stored in the <span class="component-tag tag-data">Local Storage</span> library.</p>
@@ -90,48 +89,29 @@
                             <p><strong>Step 3: Augment (Logic):</strong> The system selects the top 3 most stylistically similar posts from the library. These are the most relevant examples for the current task.</p>
                         </div>
                          <div class="workflow-step">
-                            <p><strong>Step 4: Generate (AI Call):</strong> The user's request (Goal, Tone, Details) AND the 3 retrieved posts are sent to the powerful <span class="component-tag tag-ai">gemini-2.5-flash</span> model. The AI is instructed to mimic the style of the provided examples.</p>
+                            <p><strong>Step 4: Generate (AI Call):</strong> The user's request (Goal, Tone, Details) AND the 3 retrieved posts are sent to the powerful <span class="component-tag tag-ai">gemini-2.5-pro</span> model. The AI is instructed to mimic the style of the provided examples.</p>
                         </div>
                         <div class="workflow-step">
-                            <p><strong>Render Result:</strong> The AI returns a new post, which is displayed to the user in the <span class="component-tag tag-ui">GeneratedPost</span> component.</p>
-                        </div>
-                    </div>
-                </article>
-            </section>
-            
-            <!-- WORKFLOW 2: REAL-TIME ENGAGEMENT PREDICTION -->
-            <section class="mb-12">
-                <h3 class="text-xl font-semibold text-blue-700 mb-6">Workflow 2: Engagement Prediction (Custom DL Model)</h3>
-                <p class="mb-6 text-gray-600">This workflow uses a simulated, custom-trained deep learning model to provide instant feedback on a post's quality without an API call.</p>
-                <article class="p-6 bg-gray-50 rounded-lg border">
-                     <div class="workflow">
-                        <div class="workflow-step">
-                            <p><strong>User Action:</strong> User types their draft into the textarea in the 'Revise Post' tab, handled by the <span class="component-tag tag-ui">PostAnalyzer</span> component.</p>
-                        </div>
-                        <div class="workflow-step">
-                            <p><strong>Model Inference (Simulation):</strong> After the user stops typing, the text is sent to the <span class="component-tag tag-logic">engagementPredictorService</span>. This service mimics a trained text classification model by analyzing the text for key features (length, questions, hashtags, etc.) that it would have learned from a <span class="component-tag tag-data">training dataset</span>.</p>
-                        </div>
-                        <div class="workflow-step">
-                             <p><strong>Render Result:</strong> The service returns a prediction ('Low', 'Medium', 'High'), a confidence score, and justification points. This result is displayed in real-time by the <span class="component-tag tag-ui">EngagementPredictor</span> component, giving the user immediate feedback.</p>
+                            <p><strong>Render Result:</strong> The AI returns a new post variation, which is displayed to the user in the <span class="component-tag tag-ui">GeneratedPost</span> component.</p>
                         </div>
                     </div>
                 </article>
             </section>
 
-            <!-- WORKFLOW 3: REVISE POST -->
+            <!-- WORKFLOW 2: ANALYZE POST -->
             <section>
-                <h3 class="text-xl font-semibold text-blue-700 mb-6">Workflow 3: Revise Post (with Gemini)</h3>
-                 <p class="mb-6 text-gray-600">This workflow uses the powerful Gemini LLM for an in-depth analysis and revision of a user's draft post.</p>
+                <h3 class="text-xl font-semibold text-blue-700 mb-6">Workflow 2: Analyze Post</h3>
+                 <p class="mb-6 text-gray-600">This workflow provides a direct analysis of a user's draft post.</p>
                 <article class="p-6 bg-gray-50 rounded-lg border">
                      <div class="workflow">
                         <div class="workflow-step">
-                            <p><strong>User Action:</strong> User clicks the "Revise Post with Gemini AI" button in the <span class="component-tag tag-ui">PostAnalyzer</span> component.</p>
+                            <p><strong>User Action:</strong> User navigates to the 'Revise Post' tab and pastes their draft into the <span class="component-tag tag-ui">PostAnalyzer</span> component.</p>
                         </div>
                         <div class="workflow-step">
-                            <p><strong>AI Call with Structured Output:</strong> The draft text is sent to the <span class="component-tag tag-ai">gemini-2.5-flash</span> model. The request includes a specific `responseSchema`, instructing the AI to return its analysis in a clean JSON format, including a revised post and a numerical score.</p>
+                            <p><strong>AI Call:</strong> The draft text is sent directly to the <span class="component-tag tag-ai">gemini-2.5-pro</span> model with a detailed prompt asking for a structured analysis (score, strengths, improvements, revised version, etc.) in JSON format.</p>
                         </div>
                         <div class="workflow-step">
-                             <p><strong>Render Result:</strong> The AI returns a JSON object. This data is used to display the final result, including the score gauge and a side-by-side comparison of the original and revised posts within the <span class="component-tag tag-ui">PostAnalyzer</span> and <span class="component-tag tag-ui">GeneratedPost</span> components.</p>
+                             <p><strong>Render Result:</strong> The AI returns a JSON object with the full analysis. This data is passed to the <span class="component-tag tag-ui">PostAnalysisResult</span> component, which formats it into the score gauge, lists, and cards for the user to see.</p>
                         </div>
                     </div>
                 </article>

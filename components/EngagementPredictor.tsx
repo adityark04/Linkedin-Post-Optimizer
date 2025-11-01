@@ -15,16 +15,22 @@ const DEBOUNCE_DELAY = 500; // ms
 const EngagementPredictor: React.FC<EngagementPredictorProps> = ({ text }) => {
   const [prediction, setPrediction] = useState<EngagementPrediction | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isModelReady, setIsModelReady] = useState(false);
   
   useEffect(() => {
-    if (text.trim().length < 15) {
+    // The model is loaded globally in App.tsx, but we check its status here.
+    setIsModelReady(engagementPredictorService.isReady());
+  }, []);
+
+  useEffect(() => {
+    if (!isModelReady || text.trim().length < 15) {
       setPrediction(null);
       return;
     }
     
     setIsAnalyzing(true);
-    const handler = setTimeout(() => {
-      const result = engagementPredictorService.predict(text);
+    const handler = setTimeout(async () => {
+      const result = await engagementPredictorService.predict(text);
       setPrediction(result);
       setIsAnalyzing(false);
     }, DEBOUNCE_DELAY);
@@ -33,7 +39,7 @@ const EngagementPredictor: React.FC<EngagementPredictorProps> = ({ text }) => {
       clearTimeout(handler);
       setIsAnalyzing(false);
     };
-  }, [text]);
+  }, [text, isModelReady]);
 
   const getIndicatorColor = () => {
     if (!prediction) return 'bg-slate-300';
@@ -46,6 +52,9 @@ const EngagementPredictor: React.FC<EngagementPredictorProps> = ({ text }) => {
   };
 
   const renderContent = () => {
+    if (!isModelReady) {
+        return <p className="text-sm text-slate-500">Engagement model loading...</p>;
+    }
     if (isAnalyzing) {
         return <p className="text-sm text-slate-500">Analyzing draft...</p>;
     }

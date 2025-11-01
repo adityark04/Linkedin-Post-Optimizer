@@ -2,7 +2,6 @@
 import React, { useState, useCallback } from 'react';
 import { PostGenerationParams, PostGoal, PostTone, StyleLibraryItem } from '../types';
 import { GOALS, TONES } from '../constants';
-// FIX: Replace local model service with the new Gemini service
 import geminiService from '../services/geminiService';
 import GeneratedPost from './GeneratedPost';
 import Loader from './Loader';
@@ -10,10 +9,8 @@ import PostAnalyzer from './PostAnalyzer';
 import StyleLibraryManager from './StyleLibraryManager';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { SparklesIcon } from './icons/SparklesIcon';
-import RealtimeAnalysis from './RealtimeAnalysis';
 import ResourceSuggester from './ResourceSuggester';
 import { maximalMarginalRelevanceSearch } from '../utils/vectorSearch';
-
 
 const PostGenerator: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'generate' | 'revise'>('generate');
@@ -24,7 +21,7 @@ const PostGenerator: React.FC = () => {
   const [details, setDetails] = useState('');
   const [isSuggestingHashtags, setIsSuggestingHashtags] = useState(false);
   const [generatedPosts, setGeneratedPosts] = useState<string[]>([]);
-  const [diversity, setDiversity] = useState(1.5); // State for MMR diversity control
+  const [diversity, setDiversity] = useState(1.5);
   
   const [styleLibrary, setStyleLibrary] = useLocalStorage<StyleLibraryItem[]>('styleLibrary', []);
 
@@ -64,7 +61,6 @@ const PostGenerator: React.FC = () => {
         const query = `Goal: ${goal}, Tone: ${tone}, Details: ${details}`;
         const queryEmbedding = await geminiService.embedText(query);
         
-        // Use Maximal Marginal Relevance (MMR) search with diversity control
         const selectedPosts = maximalMarginalRelevanceSearch(queryEmbedding, styleLibrary, 0.7, 3, diversity);
         relevantPosts = selectedPosts.map(item => item.text);
       }
@@ -73,8 +69,7 @@ const PostGenerator: React.FC = () => {
       const post = await geminiService.generateLinkedInPost(params);
       setGeneratedPosts(prev => [post, ...prev]);
 
-    } catch (err)
- {
+    } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred.');
     } finally {
       setIsProcessing(false);
@@ -104,7 +99,6 @@ const PostGenerator: React.FC = () => {
   };
   
   const handleSuggestionClick = (suggestion: string) => {
-    // Append the suggestion to the details text area, ensuring there's a space
     setDetails(prev => `${prev} ${suggestion}`.trim() + ' ');
   };
 
@@ -138,6 +132,7 @@ const PostGenerator: React.FC = () => {
                 onClick={handleSuggestHashtags}
                 disabled={isSuggestingHashtags || details.trim().length < 10}
                 className="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-100 rounded-md hover:bg-indigo-200 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors flex items-center"
+                title={"Suggest hashtags for your post"}
             >
                 <SparklesIcon className={`h-4 w-4 mr-1.5 ${isSuggestingHashtags ? 'animate-pulse' : ''}`}/>
                 {isSuggestingHashtags ? 'Suggesting...' : 'Suggest Hashtags'}
@@ -151,11 +146,7 @@ const PostGenerator: React.FC = () => {
       </div>
       
       <div className="mb-6">
-        <ResourceSuggester onSuggestionClick={handleSuggestionClick} />
-      </div>
-
-      <div className="mb-6">
-        <RealtimeAnalysis text={details} />
+        <ResourceSuggester goal={goal} tone={tone} onSuggestionClick={handleSuggestionClick} />
       </div>
 
       {styleLibrary.length > 1 && (
@@ -206,6 +197,7 @@ const PostGenerator: React.FC = () => {
           type="submit"
           disabled={!isGenFormValid || isProcessing}
           className="inline-flex items-center justify-center px-8 py-3 bg-indigo-600 text-white font-bold rounded-lg shadow-md hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
+          title={"Generate a new post"}
         >
           {isProcessing ? (
               <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

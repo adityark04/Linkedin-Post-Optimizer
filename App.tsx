@@ -11,7 +11,7 @@ const App: React.FC = () => {
         <PostGenerator />
       </main>
       <footer className="text-center py-6 text-slate-500 text-sm">
-        <p>Powered by AI. Designed for professionals.</p>
+        <p>Powered by AI</p>
       </footer>
     </div>
   );

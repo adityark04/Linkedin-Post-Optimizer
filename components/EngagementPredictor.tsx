@@ -1,45 +1,14 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { EngagementPrediction } from '../types';
-import engagementPredictorService from '../services/engagementPredictorService';
 import { LightbulbIcon } from './icons/LightbulbIcon';
 import { ThumbsUpIcon } from './icons/ThumbsUpIcon';
 import { SparklesIcon } from './icons/SparklesIcon';
 
 interface EngagementPredictorProps {
-  text: string;
+  prediction: EngagementPrediction | null;
 }
 
-const DEBOUNCE_DELAY = 500; // ms
-
-const EngagementPredictor: React.FC<EngagementPredictorProps> = ({ text }) => {
-  const [prediction, setPrediction] = useState<EngagementPrediction | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isModelReady, setIsModelReady] = useState(false);
-  
-  useEffect(() => {
-    // The model is loaded globally in App.tsx, but we check its status here.
-    setIsModelReady(engagementPredictorService.isReady());
-  }, []);
-
-  useEffect(() => {
-    if (!isModelReady || text.trim().length < 15) {
-      setPrediction(null);
-      return;
-    }
-    
-    setIsAnalyzing(true);
-    const handler = setTimeout(async () => {
-      const result = await engagementPredictorService.predict(text);
-      setPrediction(result);
-      setIsAnalyzing(false);
-    }, DEBOUNCE_DELAY);
-
-    return () => {
-      clearTimeout(handler);
-      setIsAnalyzing(false);
-    };
-  }, [text, isModelReady]);
+const EngagementPredictor: React.FC<EngagementPredictorProps> = ({ prediction }) => {
 
   const getIndicatorColor = () => {
     if (!prediction) return 'bg-slate-300';
@@ -52,14 +21,8 @@ const EngagementPredictor: React.FC<EngagementPredictorProps> = ({ text }) => {
   };
 
   const renderContent = () => {
-    if (!isModelReady) {
-        return <p className="text-sm text-slate-500">Engagement model loading...</p>;
-    }
-    if (isAnalyzing) {
-        return <p className="text-sm text-slate-500">Analyzing draft...</p>;
-    }
     if (!prediction) {
-      return <p className="text-sm text-slate-500">Start typing for an instant engagement prediction.</p>;
+      return <p className="text-sm text-slate-500 text-center">Submit a post draft above to see its engagement analysis.</p>;
     }
     return (
       <div className="w-full">

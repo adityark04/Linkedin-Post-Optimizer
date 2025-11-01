@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import resourceService, { SearchResults } from '../services/resourceService';
 import useDebounce from '../hooks/useDebounce';
@@ -7,6 +6,7 @@ import { BriefcaseIcon } from './icons/BriefcaseIcon';
 import { BookOpenIcon } from './icons/BookOpenIcon';
 import { TagIcon } from './icons/TagIcon';
 import { PostGoal, PostTone } from '../types';
+// FIX: Switch from localModelService to geminiService for keyword suggestions.
 import geminiService from '../services/geminiService';
 import { SparklesIcon } from './icons/SparklesIcon';
 
@@ -14,9 +14,10 @@ interface ResourceSuggesterProps {
   onSuggestionClick: (suggestion: string) => void;
   goal: PostGoal;
   tone: PostTone;
+  isModelReady: boolean;
 }
 
-const ResourceSuggester: React.FC<ResourceSuggesterProps> = ({ onSuggestionClick, goal, tone }) => {
+const ResourceSuggester: React.FC<ResourceSuggesterProps> = ({ onSuggestionClick, goal, tone, isModelReady }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResults | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -52,6 +53,7 @@ const ResourceSuggester: React.FC<ResourceSuggesterProps> = ({ onSuggestionClick
     performSearch();
   }, [debouncedQuery]);
 
+  // FIX: Use geminiService to suggest keywords instead of the non-existent method on localModelService.
   const handleSuggestKeywords = async () => {
     setIsSuggesting(true);
     setAiError(null);
@@ -84,6 +86,7 @@ const ResourceSuggester: React.FC<ResourceSuggesterProps> = ({ onSuggestionClick
             <p className="text-xs text-slate-600 mb-2">
               Get AI keywords for your goal (<strong className="text-indigo-600">{goal}</strong>) and tone (<strong className="text-indigo-600">{tone}</strong>).
             </p>
+            {/* FIX: Remove dependency on isModelReady for the button's state as Gemini is used instead of a local model. */}
             <button
               onClick={handleSuggestKeywords}
               disabled={isSuggesting}

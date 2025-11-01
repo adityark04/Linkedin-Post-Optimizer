@@ -1,102 +1,129 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { PostGenerationParams, PostGoal, PostTone, PostAnalysis } from '../types';
+// FIX: Import PostGoal and PostTone for the new suggestKeywordsForPost method.
+import { PostGenerationParams, PostAnalysis, PostGoal, PostTone } from "../types";
+
+const API_KEY = process.env.API_KEY;
+
+if (!API_KEY) {
+  throw new Error("Missing Gemini API Key");
+}
 
 class GeminiService {
   private ai: GoogleGenAI;
-  // Use a dedicated embedding model for higher quality and efficiency.
-  private embeddingModel = 'text-embedding-004'; 
-  private flashModel = 'gemini-2.5-flash';
-  private proModel = 'gemini-2.5-pro';
 
   constructor() {
-    if (!process.env.API_KEY) {
-      // This error is a safeguard; the API key is expected to be present.
-      throw new Error("API_KEY environment variable not set");
-    }
-    this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    this.ai = new GoogleGenAI({ apiKey: API_KEY });
   }
 
-  async embedText(text: string): Promise<number[]> {
-    const response = await this.ai.models.embedContent({
-      model: this.embeddingModel,
-      content: { parts: [{ text }] },
-    });
-    return response.embedding.values;
-  }
-
-  async generateLinkedInPost(params: PostGenerationParams): Promise<string> {
+  async generatePostVariations(params: PostGenerationParams): Promise<string[]> {
     const { goal, details, tone, relevantPosts } = params;
 
     const ragGuidance = (relevantPosts && relevantPosts.length > 0)
-      ? `CRITICALLY IMPORTANT: Your primary goal is to write a new post that closely mimics the style, voice, and format of the following examples. Analyze their structure, tone, and vocabulary.\n\nEXAMPLES:\n---\n${relevantPosts.join('\n---\n')}\n---`
-      : 'Write a high-quality, engaging LinkedIn post.';
+      ? `CRITICAL INSTRUCTION: Mimic the style, tone, and structure of the following posts:\n\n---\n${relevantPosts.join('\n---\n')}\n---`
+      : 'Generate the post in a popular, engaging LinkedIn style.';
 
     const prompt = `
-      As a world-class LinkedIn content strategist, generate a LinkedIn post based on the following requirements.
-      
-      ${ragGuidance}
-      
-      POST REQUIREMENTS:
+      You are an expert LinkedIn content creator. Generate 3 variations of a LinkedIn post based on the user's request.
+
+      **User Request:**
       - Goal: ${goal}
-      - Tone: ${tone}
-      - Key Details to Include: ${details}
+      - Desired Tone: ${tone}
+      - Key Details: ${details}
 
-      Return ONLY the generated post content, with no preamble or extra text.
+      ${ragGuidance}
     `;
-    
-    const response = await this.ai.models.generateContent({
-        model: this.proModel, // Use Pro model for higher quality RAG generation
-        contents: prompt,
-    });
-    return response.text;
-  }
-  
-  async reviseLinkedInPost(draft: string): Promise<PostAnalysis> {
-    const prompt = `You are an expert LinkedIn post analyzer. Analyze the following draft and provide a revised, more engaging version.
-    
-    Draft:
-    "${draft}"
 
-    Your response must be a JSON object that strictly follows this schema.`;
-    
     const response = await this.ai.models.generateContent({
-      model: this.proModel,
+      model: "gemini-2.5-pro",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            score: { type: Type.INTEGER, description: "Engagement score from 1 to 10 for the revised post." },
-            strengths: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Positive aspects of the original post." },
-            improvements: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Suggestions for improvement implemented in the revised version." },
-            revisedPost: { type: Type.STRING, description: "The revised and improved post content." }
-          },
-          required: ["score", "strengths", "improvements", "revisedPost"],
+            variations: {
+              type: Type.ARRAY,
+              description: "An array containing 3 distinct LinkedIn post variations as strings.",
+              items: {
+                type: Type.STRING
+              }
+            }
+          }
         }
       }
     });
 
-    const jsonString = response.text;
-    return JSON.parse(jsonString) as PostAnalysis;
+    const json = JSON.parse(response.text);
+    return json.variations || [];
   }
+  
+  async analyzePost(draft: string): Promise<PostAnalysis> {
+    const prompt = `
+      Analyze the provided LinkedIn post draft. Evaluate it based on engagement potential, clarity, and professionalism.
+      
+      Post Draft:
+      ---
+      ${draft}
+      ---
+    `;
 
-  async suggestHashtags(postContent: string): Promise<string> {
-    const prompt = `Generate 5 to 7 relevant and trending hashtags for this LinkedIn post. Return only the hashtags, separated by spaces. For example: #hashtag1 #hashtag2 #hashtag3\n\nPost content: "${postContent}"`;
     const response = await this.ai.models.generateContent({
-        model: this.flashModel,
-        contents: prompt,
+      model: 'gemini-2.5-pro',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            score: {
+              type: Type.NUMBER,
+              description: 'A score from 1-10 on its overall quality and engagement potential.'
+            },
+            strengths: {
+              type: Type.ARRAY,
+              description: 'A list of 2-3 bullet points on what the post does well.',
+              items: { type: Type.STRING }
+            },
+            improvements: {
+              type: Type.ARRAY,
+              description: 'A list of 2-3 bullet points with specific suggestions for improvement.',
+              items: { type: Type.STRING }
+            },
+            revisedVersion: {
+              type: Type.STRING,
+              description: 'A rewritten, improved version of the post that incorporates the suggestions.'
+            }
+          }
+        }
+      }
     });
-    return response.text.split(/\s+/).filter(tag => tag.startsWith('#')).join(' ');
+
+    return JSON.parse(response.text);
   }
 
+  // FIX: Add suggestKeywordsForPost method to generate keywords using Gemini.
   async suggestKeywordsForPost(goal: PostGoal, tone: PostTone): Promise<string[]> {
-    const prompt = `You are an expert LinkedIn content strategist. For a LinkedIn post with the goal of "${goal}" and a "${tone}" tone, suggest 5 to 7 highly relevant keywords or short phrases (2-3 words max). Return ONLY a comma-separated list of these keywords.`;
+    const prompt = `
+      You are a LinkedIn content expert. 
+      Suggest 5 to 7 relevant single-word or two-word keywords for a LinkedIn post.
+
+      **Post Goal:** ${goal}
+      **Desired Tone:** ${tone}
+
+      Return ONLY a comma-separated list of the keywords, without any preamble or explanation.
+      For example: Career Growth, Tech, Certification, Upskilling, Job Search
+    `;
+
     const response = await this.ai.models.generateContent({
-        model: this.flashModel,
-        contents: prompt,
+      model: "gemini-2.5-flash",
+      contents: prompt,
     });
-    return response.text.split(',').map(kw => kw.trim().replace(/\.$/, '')).filter(Boolean);
+
+    const text = response.text.trim();
+    if (!text) {
+        return [];
+    }
+    return text.split(',').map(kw => kw.trim()).filter(Boolean);
   }
 }
 

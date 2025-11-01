@@ -1,11 +1,10 @@
-// Fix: Use named imports for tfjs types and functions to resolve namespace errors.
+// This import is crucial for side-effects, registering the TF.js backend.
 import '@tensorflow/tfjs';
 import { loadLayersModel, tensor2d, dispose, LayersModel, Tensor } from '@tensorflow/tfjs';
 import { EngagementPrediction, EngagementLevel } from '../types';
 
 // This class loads and runs a trained TensorFlow.js model for engagement prediction.
 class EngagementPredictorService {
-  // Fix: Use imported 'LayersModel' type instead of tf.LayersModel.
   private model: LayersModel | null = null;
   private tokenizer: any | null = null;
   private wordIndex: { [key: string]: number } | null = null;
@@ -19,7 +18,6 @@ class EngagementPredictorService {
     this.status = 'loading';
     try {
       const [model, tokenizerResponse] = await Promise.all([
-        // Fix: Use imported 'loadLayersModel' function instead of tf.loadLayersModel.
         loadLayersModel('/engagement_model/model.json'),
         fetch('/engagement_model/tokenizer.json')
       ]);
@@ -27,11 +25,24 @@ class EngagementPredictorService {
       if (!tokenizerResponse.ok) {
         throw new Error(`Failed to fetch tokenizer: ${tokenizerResponse.statusText}`);
       }
+      
+      const tokenizerData = await tokenizerResponse.json();
+
+      // Handle potentially double-encoded JSON from the Python script
+      const parsedTokenizer = (typeof tokenizerData === 'string') 
+        ? JSON.parse(tokenizerData) 
+        : tokenizerData;
 
       this.model = model;
-      this.tokenizer = await tokenizerResponse.json();
+      this.tokenizer = parsedTokenizer;
 
-      // The tokenizer config from Keras contains the word -> index mapping as a JSON string.
+
+      // The tokenizer config from Keras contains the word -> index mapping.
+      // It might be a string that needs parsing, or already an object.
+      if (!this.tokenizer.config?.word_index) {
+        throw new Error("Tokenizer config is missing 'word_index'.");
+      }
+
       if (typeof this.tokenizer.config.word_index === 'string') {
         this.wordIndex = JSON.parse(this.tokenizer.config.word_index);
       } else {
@@ -40,8 +51,12 @@ class EngagementPredictorService {
       
       this.status = 'ready';
     } catch (error) {
-      console.error("Failed to load engagement model:", error);
+      console.error(
+        "Could not load custom engagement model. The 'Advanced DL' option will be disabled. This is expected if you haven't trained and provided the model files in the /public folder yet.", 
+        error
+      );
       this.status = 'error';
+      // Do not re-throw the error, to allow the rest of the application to load.
     }
   }
 
@@ -49,7 +64,6 @@ class EngagementPredictorService {
     return this.status === 'ready';
   }
 
-  // Fix: Use imported 'Tensor' type instead of tf.Tensor.
   private preprocessText(text: string): Tensor {
     if (!this.tokenizer || !this.wordIndex) {
       throw new Error("Tokenizer not loaded.");
@@ -70,7 +84,6 @@ class EngagementPredictorService {
         paddedSequence[startIndex + i] = sequences[i];
     }
     
-    // Fix: Use imported 'tensor2d' function instead of tf.tensor2d.
     return tensor2d([paddedSequence], [1, this.MAX_LEN], 'int32');
   }
 
@@ -82,10 +95,8 @@ class EngagementPredictorService {
 
     try {
         const preprocessed = this.preprocessText(text);
-        // Fix: Use imported 'Tensor' type for casting.
         const predictionTensor = this.model.predict(preprocessed) as Tensor;
         const probabilities = await predictionTensor.data() as Float32Array;
-        // Fix: Use imported 'dispose' function instead of tf.dispose.
         dispose([preprocessed, predictionTensor]);
 
         let maxProb = 0;

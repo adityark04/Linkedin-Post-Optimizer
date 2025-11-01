@@ -1,97 +1,93 @@
 import React from 'react';
 import { PostAnalysis } from '../types';
 import GeneratedPost from './GeneratedPost';
-import { ThumbsUpIcon } from './icons/ThumbsUpIcon';
 import { LightbulbIcon } from './icons/LightbulbIcon';
+import { ThumbsUpIcon } from './icons/ThumbsUpIcon';
+import { SparklesIcon } from './icons/SparklesIcon';
 
-const ScoreDisplay = ({ score }: { score: number }) => {
-  const size = 112; // w-28, h-28 in Tailwind
-  const strokeWidth = 10;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const clampedScore = Math.max(1, Math.min(10, score));
-  const offset = circumference - (clampedScore / 10) * circumference;
+interface PostAnalysisResultProps {
+  result: PostAnalysis | null;
+}
 
-  let color = 'text-green-600';
-  let ringColor = 'stroke-green-500';
-  if (clampedScore < 4) {
-    color = 'text-red-600';
-    ringColor = 'stroke-red-500';
-  } else if (clampedScore < 7) {
-    color = 'text-yellow-600';
-    ringColor = 'stroke-yellow-500';
+const ScoreGauge: React.FC<{ score: number }> = ({ score }) => {
+  const percentage = score * 10;
+  const circumference = 2 * Math.PI * 45; // 2 * pi * radius
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  let colorClass = 'text-red-500';
+  if (score >= 4 && score < 7) {
+    colorClass = 'text-yellow-500';
+  } else if (score >= 7) {
+    colorClass = 'text-green-500';
   }
 
   return (
-    <div className="relative flex items-center justify-center w-28 h-28">
-      <svg className="absolute w-full h-full transform -rotate-90" viewBox={`0 0 ${size} ${size}`}>
+    <div className={`relative h-32 w-32 font-bold ${colorClass}`}>
+      <svg className="transform -rotate-90" width="100%" height="100%" viewBox="0 0 100 100">
         <circle
           className="text-slate-200"
-          strokeWidth={strokeWidth}
+          strokeWidth="8"
           stroke="currentColor"
           fill="transparent"
-          r={radius}
-          cx={size / 2}
-          cy={size / 2}
+          r="45"
+          cx="50"
+          cy="50"
         />
         <circle
-          className={ringColor}
-          strokeWidth={strokeWidth}
+          strokeWidth="8"
           strokeDasharray={circumference}
-          strokeDashoffset={offset}
+          strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
           stroke="currentColor"
           fill="transparent"
-          r={radius}
-          cx={size / 2}
-          cy={size / 2}
-          style={{ transition: 'stroke-dashoffset 0.8s ease-out' }}
+          r="45"
+          cx="50"
+          cy="50"
+          style={{ transition: 'stroke-dashoffset 0.5s ease-out' }}
         />
       </svg>
-      <div className="absolute flex flex-col items-center">
-        <span className={`text-4xl font-bold ${color}`}>{clampedScore.toFixed(1)}</span>
-        <span className="text-sm text-slate-500 -mt-1">/ 10</span>
-      </div>
+      <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl text-slate-700">
+        {score}
+      </span>
     </div>
   );
 };
 
 
-interface PostAnalysisResultProps {
-  analysis: PostAnalysis;
-  originalDraft: string;
-}
+const PostAnalysisResult: React.FC<PostAnalysisResultProps> = ({ result }) => {
+  if (!result) {
+    return null;
+  }
 
-const PostAnalysisResult: React.FC<PostAnalysisResultProps> = ({ analysis, originalDraft }) => {
   return (
-    <div className="mt-8 pt-8 border-t border-slate-200 animate-fade-in-slow">
-      <h2 className="text-2xl font-bold text-center mb-6 text-slate-800">AI Revision & Analysis</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-        <div className="md:col-span-1 bg-slate-50 rounded-xl p-6 border border-slate-200 flex flex-col items-center text-center">
-            <p className="font-semibold text-slate-700 mb-3 text-lg">AI Engagement Score</p>
-            <ScoreDisplay score={analysis.score} />
-            <p className="text-sm text-slate-500 mt-3">An estimate of how well the revised post might perform based on engagement best practices.</p>
-        </div>
-        <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="bg-green-50/70 p-4 rounded-lg border border-green-200">
-                <h3 className="font-semibold text-green-800 flex items-center mb-2"><ThumbsUpIcon className="h-5 w-5 mr-2" />Strengths</h3>
-                <ul className="list-disc list-inside space-y-1 text-sm text-green-900">
-                    {analysis.strengths.map((item, i) => <li key={`strength-${i}`}>{item}</li>)}
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-xl font-bold text-center mb-4 text-slate-800">AI Analysis Report</h2>
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 flex flex-col md:flex-row items-center gap-6">
+          <div className="flex-shrink-0">
+            <ScoreGauge score={result.score} />
+            <p className="text-center text-sm font-semibold text-slate-600 mt-2">Overall Score</p>
+          </div>
+          <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+                <h5 className="font-semibold text-base text-green-700 flex items-center mb-2"><ThumbsUpIcon className="h-5 w-5 mr-2"/>Strengths</h5>
+                <ul className="text-sm text-slate-600 list-disc list-inside space-y-1.5">
+                    {result.strengths.map((item, index) => <li key={`strength-${index}`}>{item}</li>)}
                 </ul>
             </div>
-            <div className="bg-yellow-50/70 p-4 rounded-lg border border-yellow-200">
-                 <h3 className="font-semibold text-yellow-800 flex items-center mb-2"><LightbulbIcon className="h-5 w-5 mr-2" />Improvements</h3>
-                 <ul className="list-disc list-inside space-y-1 text-sm text-yellow-900">
-                    {analysis.improvements.map((item, i) => <li key={`improvement-${i}`}>{item}</li>)}
+            <div>
+                <h5 className="font-semibold text-base text-yellow-700 flex items-center mb-2"><SparklesIcon className="h-5 w-5 mr-2"/>Improvements</h5>
+                <ul className="text-sm text-slate-600 list-disc list-inside space-y-1.5">
+                    {result.improvements.map((item, index) => <li key={`improv-${index}`}>{item}</li>)}
                 </ul>
             </div>
+          </div>
         </div>
       </div>
-      
-      <div className="space-y-6">
-        <GeneratedPost post={{ title: "AI-Revised Version", content: analysis.revisedPost }} />
-        <GeneratedPost post={{ title: "Your Original Post", content: originalDraft }} />
+
+      <div>
+        <h2 className="text-xl font-bold text-center mb-4 text-slate-800">AI-Revised Post</h2>
+        <GeneratedPost post={{ title: `AI-Revised Version (Score: ${result.score}/10)`, content: result.revisedVersion }} />
       </div>
     </div>
   );

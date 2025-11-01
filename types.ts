@@ -23,11 +23,10 @@ export interface PostAnalysis {
   score: number;
   strengths: string[];
   improvements: string[];
-  revisedPost: string;
+  revisedVersion: string;
 }
-
-// Types for the custom engagement prediction model
-export type EngagementLevel = 'Low' | 'Medium' | 'High';
+// FIX: Add missing EngagementLevel and EngagementPrediction types.
+export type EngagementLevel = 'High' | 'Medium' | 'Low';
 
 export interface EngagementPrediction {
   level: EngagementLevel;
